@@ -22,7 +22,8 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HW5 {
+public class
+HW5 {
 	/**
 	 * Creates a fresh instance of the classifier.
 	 * 
