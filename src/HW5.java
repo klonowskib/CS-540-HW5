@@ -141,6 +141,7 @@ HW5 {
                 "Unable to open file '" + 
                 fileName + "'");                
         }
+
         catch(IOException ex) {
             System.out.println(
                 "Error reading file '" 

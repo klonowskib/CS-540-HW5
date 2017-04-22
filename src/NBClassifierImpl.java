@@ -51,12 +51,24 @@ public class NBClassifierImpl implements NBClassifier {
 	/**
 	 * Read training data and learn parameters
 	 * 
-	 * @param int[][] training data
+	 * @param data training data
 	 */
 	@Override
 	public void fit(int[][] data) {
+		int inst_count = data.length - 2;
+		double p_Y;
+		double v;
+		//Prior probabilities
+		//for each attribute get the number of values
+		//compute P(attr = value) for each possible value
 
-		//	TO DO
+
+		//Smooth for conditional probabilities
+		//Conditional probabilities
+		//P(X=x | Y=y) = (#(x and y) + 1)/(#y+m)
+		//m is the size of attribute X
+		// v = max(P(Y = v) * multisum(P(Xi = ui | Y = v)))
+
 	}
 
 	/**
