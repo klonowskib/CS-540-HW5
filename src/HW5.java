@@ -213,10 +213,9 @@ HW5 {
 	private static double[] evaluate(Label[] yTrue, Label[] yPred) {
 		double[] scores = new double[3];
 		double accuracy, precision, recall;
-		int true_positive = 0, false_positive = 0, true_negative = 0, false_negative = 0;
+		double true_positive = 0, false_positive = 0, true_negative = 0, false_negative = 0;
 		//precision  = #true_positive/ (#true_positive + #false_positive)
 		//recall =  #true_positive/ (#true_positive + #false_negative)
-		accuracy = 0;
 		for(Label actual : yTrue) {
 			for (Label predicted : yPred) {
 				switch(actual) {
