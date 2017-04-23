@@ -69,6 +69,13 @@ public class NBClassifierImpl implements NBClassifier {
 		}
 		p_class = (class_count + 1)/(inst_count + featureSize[featureSize.length-1]);
 		Math.log(p_class);
+		List<Double[]> pos = new ArrayList<>();
+		Double [] y_pos = new Double[1];
+		Double [] y_neg = new Double[1];
+		y_neg[0] = 1-p_class;
+		y_pos[0] = p_class;
+		pos.add(0, y_neg);
+		pos.add(1, y_pos);
 		//probabilities given positive class
 		for(int i = 0; i < data[0].length - 1; i++) { //for each attribute
 			List<Double[]> attribute_values = new ArrayList<>();
@@ -83,20 +90,13 @@ public class NBClassifierImpl implements NBClassifier {
 				}
 				double condit_prob =  (joint_count + 1)/(class_count + featureSize[i]); //P(X = x|Y = 1)
 				double not_condit = (joint_count + 1)/((inst_count - class_count) + featureSize[i]); //P(X = x|Y = 0)
-				attr_probs[0] = Math.log(condit_prob);
-				attr_probs[1] = Math.log(not_condit);
+				attr_probs[1] = Math.log(condit_prob);
+				attr_probs[0] = Math.log(not_condit);
 				//Place the probabilities in their appropriate places in the logPosProb structure
 				attribute_values.add(j, attr_probs);
 			}
 			logPosProbs.add(i, attribute_values);
 		}
-
-		//Smooth for conditional probabilities
-		//Conditional probabilities
-		//P(X=x | Y=y) = (#(x and y) + 1)/(#y+m)
-		//m is the size of attribute X
-		// v = max(P(Y = v) * multisum(P(Xi = ui | Y = v)))
-
 	}
 
 	/**
@@ -108,7 +108,25 @@ public class NBClassifierImpl implements NBClassifier {
 	@Override
 	public Label[] classify(int[][] instances) {
 		int nrows = instances.length;
+		double pos = ((logPosProbs.get(nFeatures-1)).get(0))[1];
 		Label[] yPred = new Label[nrows]; // predicted data
+		//for each instance
+		for(int i = 0; i < instances.length; i++) {
+			//for each attribute of the instance
+			double most_probable = 0;
+			for(int j = 0; j < instances[i].length; j++) {
+				for(int k = 0; k < featureSize[j]; k++) {
+					//P(Y=v)Product(P(Xj = xj|Y = v)
+					double positive = pos*(logPosProbs.get(j)).get(k)[0];
+					double negative = (1-pos)*(logPosProbs.get(j)).get(k)[1];
+					if(positive > most_probable)
+						most_probable = positive;
+					if(negative > most_probable)
+						most_probable = negative;
+				}
+
+			}
+		}
 		//TODO
 		return yPred;
 	}
