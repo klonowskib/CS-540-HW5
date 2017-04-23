@@ -1,20 +1,20 @@
 /***************************************************************************************
-  CS540 - Section 2
-  Homework Assignment 5: Naive Bayes
+ CS540 - Section 2
+ Homework Assignment 5: Naive Bayes
 
-  NBClassifierImpl.java
-  This is the main class that implements entry functions!
-  ---------
-  	*Free to modify anything in this file, except the class name 
-  	You are required:
-  		- To keep the class name as HW5 for testing
-  		- Not to import any external libraries
-  		- Not to include any packages 
-	*Notice: To use this file, you should implement 1 method below.
+ NBClassifierImpl.java
+ This is the main class that implements entry functions!
+ ---------
+ *Free to modify anything in this file, except the class name
+ You are required:
+ - To keep the class name as HW5 for testing
+ - Not to import any external libraries
+ - Not to include any packages
+ *Notice: To use this file, you should implement 1 method below.
 
-	@author: TA 
-	@date: April 2017
-*****************************************************************************************/
+ @author: TA
+ @date: April 2017
+ *****************************************************************************************/
 
 
 import java.io.*;
@@ -26,7 +26,7 @@ public class
 HW5 {
 	/**
 	 * Creates a fresh instance of the classifier.
-	 * 
+	 *
 	 * @return	a classifier
 	 */
 	private static NBClassifier getNewClassifier(int[] iFeatures) {
@@ -76,9 +76,9 @@ HW5 {
 		int ncols = testData[0].length;
 		Label[] yTrue = new Label[nrows];
 		for (int i = 0; i < nrows; ++i) {
-			if (testData[i][ncols - 1] == 0) 
+			if (testData[i][ncols - 1] == 0)
 				yTrue[i] = Label.Negative;
-			else 
+			else
 				yTrue[i] = Label.Positive;
 		}
 
@@ -90,11 +90,11 @@ HW5 {
 		System.out.printf("Precision:\t%.3f\n", scores[1]);
 		System.out.printf("Recall: \t%.3f\n", scores[2]);
 	}
-	
+
 	/**
 	 * Remove the first row (feature) and convert data into numeric features. 
-	 * 
-	 * @param List<String[]> data
+	 *
+	 * @param  data List<String[]>
 	 * @return int[][] transformed data
 	 * @throws IOException
 	 */
@@ -106,55 +106,55 @@ HW5 {
 
 	/**
 	 * Read input file and return a list of string arrays
-	 * 
-	 * @param String file name
+	 *
+	 * @param fileName String
 	 * @return List<String[]> dataset
 	 */
 	private static List<String[]> loadFile(String fileName) {
 
 		List<String[]> data = new ArrayList<String[]>();
 
-        try {
-            // FileReader reads text files in the default encoding.
-            FileReader fileReader = 
-                new FileReader(fileName);
+		try {
+			// FileReader reads text files in the default encoding.
+			FileReader fileReader =
+					new FileReader(fileName);
 
-            // Always wrap FileReader in BufferedReader.
-            BufferedReader bufferedReader = 
-                new BufferedReader(fileReader);
+			// Always wrap FileReader in BufferedReader.
+			BufferedReader bufferedReader =
+					new BufferedReader(fileReader);
 
 			// bufferedReader.readLine(); // this will read the first line
-			
+
 			// This will reference one line at a time
-        	String line = null;
-            while((line = bufferedReader.readLine()) != null) {
-            	// Split 
-            	String[] row = (new String(line)).trim().split(",");
-                data.add(row);
-            }   
+			String line = null;
+			while((line = bufferedReader.readLine()) != null) {
+				// Split
+				String[] row = (new String(line)).trim().split(",");
+				data.add(row);
+			}
 
-            // Always close files.
-            bufferedReader.close();         
-        }
-        catch(FileNotFoundException ex) {
-            System.out.println(
-                "Unable to open file '" + 
-                fileName + "'");                
-        }
+			// Always close files.
+			bufferedReader.close();
+		}
+		catch(FileNotFoundException ex) {
+			System.out.println(
+					"Unable to open file '" +
+							fileName + "'");
+		}
 
-        catch(IOException ex) {
-            System.out.println(
-                "Error reading file '" 
-                + fileName + "'");                  
-        }
+		catch(IOException ex) {
+			System.out.println(
+					"Error reading file '"
+							+ fileName + "'");
+		}
 
 		return data;
 	}
 
 	/**
 	 * Transform String dataset into the numeric one
-	 * 
-	 * @param String[][] data
+	 *
+	 * @param rawData String[][] data
 	 * @return int[][] new dataset
 	 */
 	private static int[][] processData(String[][] rawData) {
@@ -172,12 +172,12 @@ HW5 {
 
 	/**
 	 * Convert a row of strings into integers
-	 * 
-	 * @param String[] row of dataset
+	 *
+	 * @param row String[] row of dataset
 	 * @return int[] numeric data
 	 */
 	private static int[] tranformInstance(String[] row) {
-		
+
 		int[] vector = new int[row.length];
 		for (int i = 0; i < row.length; ++i) {
 			vector[i] = Integer.valueOf(row[i]);
@@ -196,8 +196,8 @@ HW5 {
 
 	/**
 	 * Round up to the 3rd decimal point
-	 * 
-	 * @param double raw
+	 *
+	 * @param x double raw
 	 * @return double rounded number
 	 */
 	private static double round3(double x) {
@@ -206,15 +206,44 @@ HW5 {
 
 	/**
 	 * Evaluate the classification 
-	 * 
+	 *
 	 * @param {Label[], Label[]}: ground truth and predicted list
 	 * @return {accuracy, precision, recall}
 	 */
 	private static double[] evaluate(Label[] yTrue, Label[] yPred) {
-		double scores = new double[3];
+		double[] scores = new double[3];
+		double accuracy, precision, recall;
+		int true_positive = 0, false_positive = 0, true_negative = 0, false_negative = 0;
+		//precision  = #true_positive/ (#true_positive + #false_positive)
+		//recall =  #true_positive/ (#true_positive + #false_negative)
+		accuracy = 0;
+		for(Label actual : yTrue) {
+			for (Label predicted : yPred) {
+				switch(actual) {
+					case Positive: //if the actual instance is positive
+						switch (predicted) {
+							case Positive: // and the prediction is positive
+								true_positive++; //the prediction is a true positive
+							case Negative://and the prediction is negative
+								false_negative++; //the prediction is a false negative
+						}
+					case Negative: //if the actual instance is negative
+						switch (predicted) {
+							case Positive: //and the prediction is positive
+								false_positive++;
+							case Negative:
+								true_negative++;
+						}
 
-		// TO DO
-
+				}
+			}
+		}
+		accuracy = (true_negative + true_positive)/yTrue.length;
+		precision = true_positive/(true_positive + false_positive);
+		recall = true_positive/(true_positive+false_negative);
+		scores[0] = accuracy;
+		scores[1] = precision;
+		scores[2] = recall;
 		return scores;
 	}
 
