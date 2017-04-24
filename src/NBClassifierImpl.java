@@ -59,6 +59,9 @@ public class NBClassifierImpl implements NBClassifier {
 		int pos_count = 0;
 		double p_class;
 		double v;
+		for (int[] inst : data)
+			if (inst[inst.length-1] == 1)
+				pos_count++;
 		for(int i = 0; i < nFeatures; i++) {
 			for(int j = 0; j < featureSize[i]; j++) {
 
@@ -71,8 +74,7 @@ public class NBClassifierImpl implements NBClassifier {
 		double denom = (inst_count + featureSize[featureSize.length - 1]);
 		double num = pos_count + 1;
 		p_class =  num / denom;
-		System.out.println(p_class);
-		//p_class = Math.log(p_class); //good
+		//System.out.println(p_class);
 		List<Double[]> pos = new ArrayList<>(); //Hold the probabilities for a positive or negative classification
 		Double[] y_pos = new Double[2];
 		Double[] y_neg = new Double[2];
@@ -83,7 +85,7 @@ public class NBClassifierImpl implements NBClassifier {
 		pos.add(0, y_neg);
 		pos.add(1, y_pos);
 		//logPosProbs.add(logPosProbs.size()- 1, pos);
-		logPosProbs.add(pos);
+
 
 		for (int i = 0; i < data[0].length - 1; i++) { //for each attribute
 			List<Double[]> attribute_values = new ArrayList<>();
@@ -104,14 +106,16 @@ public class NBClassifierImpl implements NBClassifier {
 							njoint++;
 					}
 				}
-				double p_x_given_y = ((double)joint +1)/(p_class + featureSize[i]);
-				double p_x_given_ny = ((double)njoint +1)/((1-p_class) + featureSize[i]);
+				double p_x_given_y = Math.log(((double)joint +1)/(pos_count + featureSize[i]));
+				double p_x_given_ny = Math.log(((double)njoint +1)/((inst_count-pos_count) + featureSize[i]));
 				attr[0] = p_x_given_ny;
 				attr[1] = p_x_given_y;
 				vals.add(attr);
 			}
 			logPosProbs.add(vals);
+
 		}
+		logPosProbs.add(pos);
 			/*
 			for (int j = 0; j < featureSize[i]; j++) { //for each possible value of the current attribute
 				int joint_pos = 0;
@@ -158,19 +162,19 @@ public class NBClassifierImpl implements NBClassifier {
 				List<Double[]> values = logPosProbs.get(attr_ind); //values for the attribute
 				//probability that y is positive given the actual value of the attribute in inst
 				int actual = inst[attr_ind];
-
 				double p_actual_given_positive = values.get(actual)[1];
 				p_pos +=  p_actual_given_positive;
 				double p_actual_given_negative = values.get(actual)[0];
 				p_neg += p_actual_given_negative;
-				System.out.println("P(X = " + actual + "| Y=1): " + p_actual_given_positive);
+				//System.out.println("P(X = " + actual + "| Y=1): " + p_actual_given_positive);
 			}
 			p_neg += p_negative;
 			p_pos += p_positive;
-			System.out.println(p_pos + " " + p_neg);
-			if (p_pos >= p_neg) yPred[i] = Label.Positive;
+			//System.out.println(p_pos + " " + p_neg);
+			if (p_pos >= p_neg)
+				yPred[i] = Label.Positive;
 			else yPred[i] = Label.Negative;
-			System.out.println(i + ". Actual: " + Label.values()[inst[nFeatures-1]] + " - Classified: " + yPred[i]);
+			System.out.println((i+1) + ". Actual: " + Label.values()[inst[nFeatures-1]] + " - Classified: " + yPred[i]);
 		}
 		return yPred;
 	}

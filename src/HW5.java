@@ -219,25 +219,22 @@ HW5 {
         int pred_index = 0;
         for(Label actual : yTrue) {
             Label predicted = yPred[pred_index];
-            switch(actual) {
+            switch(predicted) {
                 case Positive: //if the actual instance is positive
-                    switch (predicted) {
-                        case Positive:
-                            true_positive++;
-                        case Negative:
-                            false_negative++;
-                    }
+                    if(predicted.equals(actual))
+                        true_positive++;
+                    else
+                        false_positive++;
                 case Negative: //if the actual instance is negative
-                    switch (predicted) {
-                        case Positive:
-                            false_positive++;
-                        case Negative:
-                            true_negative++;
-                    }
+                    if(predicted.equals(actual))
+                        true_negative++;
+                    else
+                        false_negative++;
             }
             pred_index++;
         }
         accuracy = (true_negative + true_positive)/yPred.length;
+        System.out.println(" #true negative: " + true_negative + " #true positive: " + true_positive + " yPred length: " + yPred.length);
         precision = true_positive/(true_positive + false_positive);
         recall = true_positive/(true_positive+false_negative);
         scores[0] = accuracy;
