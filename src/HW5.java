@@ -219,28 +219,24 @@ HW5 {
         int pred_index = 0;
         for(Label actual : yTrue) {
             Label predicted = yPred[pred_index];
-            switch(predicted) {
-                case Positive: //if the actual instance is positive
-                    if(actual.equals(Label.Positive)) {
-                        assert predicted.equals(Label.Negative);
-                        true_positive++;
-                    }
-                    else
-                        false_positive++;
-                case Negative: //if the actual instance is negative
-                    if(actual.equals(Label.Negative)) {
-                        System.out.println("tn " + actual + " " + predicted);
-                        true_negative++;
-                    }
-                    else
-                        false_negative++;
+            if(predicted.equals(Label.Negative)) {
+                if(actual.equals(Label.Negative))
+                    true_negative++;
+                else if(actual.equals(Label.Positive))
+                    false_negative++;
             }
-          //  printOut((pred_index+1), actual, predicted);
+            else if(predicted.equals(Label.Positive)) {
+                if(actual.equals(Label.Negative))
+                    false_positive++;
+                else if(actual.equals(Label.Positive))
+                    true_positive++;
+            }
+            printOut((pred_index+1), actual, predicted);
             pred_index++;
 
         }
         accuracy = (true_negative + true_positive)/(false_negative + false_positive + true_negative + true_positive);
-        System.out.println("#tn: " + true_negative + " tp: " + true_positive + " fp: " + false_positive + " fn: " + false_negative);
+        //System.out.println("#tn: " + true_negative + " tp: " + true_positive + " fp: " + false_positive + " fn: " + false_negative);
         precision = true_positive/(true_positive + false_positive);
         recall = true_positive/(true_positive + false_negative);
         scores[0] = accuracy;
