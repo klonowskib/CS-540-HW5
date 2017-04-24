@@ -55,91 +55,43 @@ public class NBClassifierImpl implements NBClassifier {
 	 */
 	@Override
 	public void fit(int[][] data) {
-		int inst_count = data.length - 1;
 		int pos_count = 0;
-		double p_class;
-		double v;
-		for (int[] inst : data)
-			if (inst[inst.length-1] == 1)
+		for (int[] inst : data) {
+			if (inst[inst.length-1]==1)
 				pos_count++;
-		for(int i = 0; i < nFeatures; i++) {
-			for(int j = 0; j < featureSize[i]; j++) {
-
-			}
 		}
-		//Prior probabilities
-		//for each attribute get the number of values
-		//compute P(attr = value) for each possible value
-		//compute probability of a positive instance
-		double denom = (inst_count + featureSize[featureSize.length - 1]);
-		double num = pos_count + 1;
-		p_class =  num / denom;
-		//System.out.println(p_class);
 		List<Double[]> pos = new ArrayList<>(); //Hold the probabilities for a positive or negative classification
 		Double[] y_pos = new Double[2];
 		Double[] y_neg = new Double[2];
-		y_neg[0] = Math.log((inst_count - pos_count + 1)/denom); // probability that the class is negative
+		y_neg[0] = Math.log((data.length - pos_count + 1)/((double)data.length + featureSize[featureSize.length - 1])); // probability that the class is negative
 		y_neg[1] = 0.0;
 		y_pos[0] = 0.0;
-		y_pos[1] = Math.log(p_class); // probability that the class is positive
+		y_pos[1] = Math.log(((double)pos_count+1) / ((double)data.length + featureSize[featureSize.length - 1])); // probability that the class is positive
 		pos.add(0, y_neg);
 		pos.add(1, y_pos);
 		//logPosProbs.add(logPosProbs.size()- 1, pos);
-
-
 		for (int i = 0; i < data[0].length - 1; i++) { //for each attribute
-			List<Double[]> attribute_values = new ArrayList<>();
-			//P(X = x | Y = y)
-			//Getting #(x,y)
-			//P(Y=0)
-			List<Double[]> vals = new ArrayList<Double[]>(featureSize[i]);
+			List<Double[]> attribute_values = new ArrayList<>(); //Will hold the probabilities of the attribute values
 			for (int j = 0; j < featureSize[i]; j++) {//for each value that the feature can take
-				Double[] attr = new Double[2];
+				Double[] attr = new Double[2]; //An array that holds the probability of the value, given positive and negative classes
 				int p_j_given_pos;
-				int joint = 0;
-				int njoint = 0;
+				int joint = 0; //counts instances where the attribute takes the given value and class is positive
+				int n_joint = 0; //counts instances where the attribute takes the given value and class is negative
 				for (int k = 0; k < data.length; k++) { //for each instance
-					if(data[k][i] == j) {
-						if(data[k][data[k].length-1] == 1)
+					if(data[k][i] == j) { //if the value matches
+						if(data[k][data[k].length-1] == 1) //and the class is positive
 							joint++;
-						else if (data[k][data[k].length-1] == 0)
-							njoint++;
+						else if (data[k][data[k].length-1] == 0)//and the class is negative
+							n_joint++;
 					}
 				}
-				double p_x_given_y = Math.log(((double)joint +1)/(pos_count + featureSize[i]));
-				double p_x_given_ny = Math.log(((double)njoint +1)/((inst_count-pos_count) + featureSize[i]));
-				attr[0] = p_x_given_ny;
-				attr[1] = p_x_given_y;
-				vals.add(attr);
-			}
-			logPosProbs.add(vals);
-
-		}
-		logPosProbs.add(pos);
-			/*
-			for (int j = 0; j < featureSize[i]; j++) { //for each possible value of the current attribute
-				int joint_pos = 0;
-				int joint_neg = 0;
-				Double[] attr_probs = new Double[2];
-				//j starts as the highest possible value for the attribute and decreases to 0
-				for (int k = 1; k < data.length; k++) { //for each instance
-					if (data[k][i] == j && data[k][data[k].length - 1] == 1)
-						joint_pos++;
-					else if (data[k][i] == j && data[k][data[k].length - 1] == 0)
-						joint_neg++;
-				}
-				//good
-				double condit_prob = ((double)joint_pos + 1) / ((double)pos_count + featureSize[i]); //P(X = x|Y = 1)
-				double not_condit = ((double)joint_neg + 1) / ((inst_count - pos_count) + featureSize[i]); //P(X = x|Y = 0)
-				//attr_probs[0] = Math.log(not_condit);
-				//attr_probs[1] = Math.log(condit_prob);
-				//Place the probabilities in their appropriate places in the logPosProb structure
-				//attribute_values.add(attr_probs);
+				attr[0] = Math.log(((double)n_joint + 1)/((data.length-pos_count) + featureSize[i])); //conditional probability with a negative classification
+				attr[1] = Math.log(((double)joint + 1)/(pos_count + featureSize[i])); //conditional probability with a positive classification
+				attribute_values.add(attr);
 			}
 			logPosProbs.add(attribute_values);
-			*/
-
-
+		}
+		logPosProbs.add(pos);
 	}
 
 	/**
@@ -151,30 +103,22 @@ public class NBClassifierImpl implements NBClassifier {
 	@Override
 	public Label[] classify(int[][] instances) {
 		int nrows = instances.length;
-		double pos = (logPosProbs.get(nFeatures - 1)).get(0)[1];
 		Label[] yPred = new Label[nrows]; // predicted data
-		double p_negative = logPosProbs.get(nFeatures-1).get(0)[0];
-		double p_positive = logPosProbs.get(nFeatures-1).get(1)[1];
-		for (int i = 0; i < instances.length; i++) { //for each instance
-			int[] inst = instances[i];
-			double p_pos = 0, p_neg = 0;
-			for (int attr_ind = 0; attr_ind < nFeatures; attr_ind++) { //for each attribute in the instance
-				List<Double[]> values = logPosProbs.get(attr_ind); //values for the attribute
-				//probability that y is positive given the actual value of the attribute in inst
+		int i = 0;
+		for(int[] inst : instances) {
+			yPred[i] = Label.Positive;
+			double cond_positive = 0;
+			double cond_negative = 0;
+			for (int attr_ind = 0; attr_ind < nFeatures-1; attr_ind++) {
 				int actual = inst[attr_ind];
-				double p_actual_given_positive = values.get(actual)[1];
-				p_pos +=  p_actual_given_positive;
-				double p_actual_given_negative = values.get(actual)[0];
-				p_neg += p_actual_given_negative;
-				//System.out.println("P(X = " + actual + "| Y=1): " + p_actual_given_positive);
+				cond_negative += logPosProbs.get(attr_ind).get(actual)[0];
+				cond_positive += logPosProbs.get(attr_ind).get(actual)[1];
 			}
-			p_neg += p_negative;
-			p_pos += p_positive;
-			//System.out.println(p_pos + " " + p_neg);
-			if (p_pos >= p_neg)
-				yPred[i] = Label.Positive;
-			else yPred[i] = Label.Negative;
-			System.out.println((i+1) + ". Actual: " + Label.values()[inst[nFeatures-1]] + " - Classified: " + yPred[i]);
+			cond_positive += logPosProbs.get(nFeatures-1).get(1)[1];
+			cond_negative += logPosProbs.get(nFeatures-1).get(0)[0];
+			if(cond_negative > cond_positive)
+				yPred[i] = Label.Negative;
+			i++;
 		}
 		return yPred;
 	}
